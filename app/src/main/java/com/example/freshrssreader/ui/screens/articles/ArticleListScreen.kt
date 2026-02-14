@@ -27,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,8 +38,11 @@ import com.example.freshrssreader.ui.components.ArticleCardCompact
 import com.example.freshrssreader.ui.components.ArticleCardFull
 import com.example.freshrssreader.ui.components.ArticleCardMedium
 import com.example.freshrssreader.ui.components.SwipeToMarkRead
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
 fun ArticleListScreen(
     streamId: String,
@@ -68,6 +72,26 @@ fun ArticleListScreen(
         if (shouldLoadMore) {
             viewModel.loadMore()
         }
+    }
+
+    // Auto-mark articles as read when they scroll above the visible area
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            val firstVisibleIndex = listState.firstVisibleItemIndex
+            val articles = uiState.articles
+            // All articles above the first visible item have been scrolled past
+            if (firstVisibleIndex > 0 && articles.isNotEmpty()) {
+                articles.take(firstVisibleIndex).map { it.id }
+            } else {
+                emptyList()
+            }
+        }
+            .debounce(300)
+            .collectLatest { scrolledPastIds ->
+                if (scrolledPastIds.isNotEmpty()) {
+                    viewModel.onArticlesScrolledPast(scrolledPastIds)
+                }
+            }
     }
 
     Scaffold(

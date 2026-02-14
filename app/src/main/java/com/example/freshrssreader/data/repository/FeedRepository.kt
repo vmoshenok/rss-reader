@@ -48,9 +48,11 @@ class FeedRepository @Inject constructor(
     suspend fun getArticles(
         streamId: String,
         count: Int = 50,
-        continuation: String? = null
+        continuation: String? = null,
+        excludeRead: Boolean = false
     ): Result<Pair<List<Article>, String?>> = runCatching {
-        val response = api.getStreamContents(streamId, count, continuation)
+        val excludeTarget = if (excludeRead) STATE_READ else null
+        val response = api.getStreamContents(streamId, count, continuation, excludeTarget)
         if (!response.isSuccessful) {
             throw Exception("Failed to fetch articles: ${response.code()}")
         }

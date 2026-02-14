@@ -39,7 +39,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.freshrssreader.data.repository.ArticleFilter
 import com.example.freshrssreader.data.repository.BrowserMode
+import com.example.freshrssreader.data.repository.SortOrder
 import com.example.freshrssreader.data.repository.ThemeMode
 import com.example.freshrssreader.data.repository.ViewMode
 
@@ -53,6 +55,8 @@ fun SettingsScreen(
     val viewMode by viewModel.viewMode.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
     val browserMode by viewModel.browserMode.collectAsState()
+    val sortOrder by viewModel.sortOrder.collectAsState()
+    val articleFilter by viewModel.articleFilter.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
     var serverUrl by remember { mutableStateOf(viewModel.getServerUrl()) }
 
@@ -135,6 +139,58 @@ fun SettingsScreen(
                             ViewMode.COMPACT -> "Compact (title only)"
                             ViewMode.MEDIUM -> "Medium (title + image)"
                             ViewMode.FULL -> "Full (title + image + excerpt)"
+                        },
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            // Sort Order Section
+            SectionHeader("Sort Order")
+            SortOrder.entries.forEach { order ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { viewModel.setSortOrder(order) }
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = sortOrder == order,
+                        onClick = { viewModel.setSortOrder(order) }
+                    )
+                    Text(
+                        text = when (order) {
+                            SortOrder.NEWEST_FIRST -> "Newest first"
+                            SortOrder.OLDEST_FIRST -> "Oldest first"
+                        },
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            // Article Filter Section
+            SectionHeader("Show Articles")
+            ArticleFilter.entries.forEach { filter ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { viewModel.setArticleFilter(filter) }
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = articleFilter == filter,
+                        onClick = { viewModel.setArticleFilter(filter) }
+                    )
+                    Text(
+                        text = when (filter) {
+                            ArticleFilter.UNREAD_ONLY -> "Unread only"
+                            ArticleFilter.ALL -> "All articles"
                         },
                         modifier = Modifier.padding(start = 8.dp)
                     )
