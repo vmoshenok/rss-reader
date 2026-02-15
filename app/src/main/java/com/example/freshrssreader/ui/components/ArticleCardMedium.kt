@@ -1,5 +1,6 @@
 package com.example.freshrssreader.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Icon
@@ -18,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -31,23 +35,45 @@ fun ArticleCardMedium(
     article: Article,
     onClick: () -> Unit,
     onStarToggle: () -> Unit,
+    onReadToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val bgColor = if (article.isRead) {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+    val contentAlpha = if (article.isRead) 0.5f else 1f
+
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .background(bgColor)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(start = 4.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        // Read/unread book icon
+        IconButton(onClick = onReadToggle, modifier = Modifier.size(40.dp)) {
+            Icon(
+                imageVector = if (article.isRead) Icons.AutoMirrored.Filled.MenuBook
+                    else Icons.Default.Book,
+                contentDescription = if (article.isRead) "Mark as unread" else "Mark as read",
+                tint = if (article.isRead) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    else MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
         if (article.imageUrl != null) {
             AsyncImage(
                 model = article.imageUrl,
                 contentDescription = null,
                 modifier = Modifier
                     .size(72.dp)
-                    .clip(RoundedCornerShape(8.dp)),
+                    .clip(RoundedCornerShape(8.dp))
+                    .alpha(contentAlpha),
                 contentScale = ContentScale.Crop
             )
         }
@@ -62,7 +88,7 @@ fun ArticleCardMedium(
                 fontWeight = if (!article.isRead) FontWeight.Bold else FontWeight.Normal,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                color = if (article.isRead) MaterialTheme.colorScheme.onSurfaceVariant
+                color = if (article.isRead) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     else MaterialTheme.colorScheme.onSurface
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -70,13 +96,16 @@ fun ArticleCardMedium(
                     Text(
                         text = article.feedTitle,
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        color = if (article.isRead) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            else MaterialTheme.colorScheme.primary
                     )
                 }
                 Text(
                     text = formatDate(article.publishedTimestamp),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                        alpha = if (article.isRead) 0.5f else 1f
+                    )
                 )
             }
         }
@@ -86,7 +115,9 @@ fun ArticleCardMedium(
                 imageVector = if (article.isStarred) Icons.Default.Star else Icons.Default.StarBorder,
                 contentDescription = if (article.isStarred) "Unstar" else "Star",
                 tint = if (article.isStarred) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurfaceVariant
+                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                        alpha = if (article.isRead) 0.5f else 1f
+                    )
             )
         }
     }

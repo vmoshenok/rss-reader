@@ -110,8 +110,8 @@ fun ArticleListScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -180,17 +180,20 @@ fun ArticleListScreen(
                                     ViewMode.COMPACT -> ArticleCardCompact(
                                         article = article,
                                         onClick = { onArticleClick(index) },
-                                        onStarToggle = { viewModel.toggleStar(article.id) }
+                                        onStarToggle = { viewModel.toggleStar(article.id) },
+                                        onReadToggle = { viewModel.toggleReadUnread(article.id) }
                                     )
                                     ViewMode.MEDIUM -> ArticleCardMedium(
                                         article = article,
                                         onClick = { onArticleClick(index) },
-                                        onStarToggle = { viewModel.toggleStar(article.id) }
+                                        onStarToggle = { viewModel.toggleStar(article.id) },
+                                        onReadToggle = { viewModel.toggleReadUnread(article.id) }
                                     )
                                     ViewMode.FULL -> ArticleCardFull(
                                         article = article,
                                         onClick = { onArticleClick(index) },
-                                        onStarToggle = { viewModel.toggleStar(article.id) }
+                                        onStarToggle = { viewModel.toggleStar(article.id) },
+                                        onReadToggle = { viewModel.toggleReadUnread(article.id) }
                                     )
                                 }
                             }

@@ -1,12 +1,16 @@
 package com.example.freshrssreader.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Icon
@@ -29,15 +33,35 @@ fun ArticleCardCompact(
     article: Article,
     onClick: () -> Unit,
     onStarToggle: () -> Unit,
+    onReadToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val bgColor = if (article.isRead) {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .background(bgColor)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(start = 4.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Read/unread book icon
+        IconButton(onClick = onReadToggle, modifier = Modifier.size(40.dp)) {
+            Icon(
+                imageVector = if (article.isRead) Icons.AutoMirrored.Filled.MenuBook
+                    else Icons.Default.Book,
+                contentDescription = if (article.isRead) "Mark as unread" else "Mark as read",
+                tint = if (article.isRead) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    else MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -48,7 +72,7 @@ fun ArticleCardCompact(
                 fontWeight = if (!article.isRead) FontWeight.Bold else FontWeight.Normal,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                color = if (article.isRead) MaterialTheme.colorScheme.onSurfaceVariant
+                color = if (article.isRead) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     else MaterialTheme.colorScheme.onSurface
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -56,13 +80,16 @@ fun ArticleCardCompact(
                     Text(
                         text = article.feedTitle,
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        color = if (article.isRead) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            else MaterialTheme.colorScheme.primary
                     )
                 }
                 Text(
                     text = formatDate(article.publishedTimestamp),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                        alpha = if (article.isRead) 0.5f else 1f
+                    )
                 )
             }
         }
@@ -71,7 +98,9 @@ fun ArticleCardCompact(
                 imageVector = if (article.isStarred) Icons.Default.Star else Icons.Default.StarBorder,
                 contentDescription = if (article.isStarred) "Unstar" else "Star",
                 tint = if (article.isStarred) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurfaceVariant
+                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                        alpha = if (article.isRead) 0.5f else 1f
+                    )
             )
         }
     }

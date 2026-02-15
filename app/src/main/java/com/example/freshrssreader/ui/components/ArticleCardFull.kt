@@ -1,5 +1,6 @@
 package com.example.freshrssreader.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,8 +8,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Icon
@@ -18,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -31,13 +36,22 @@ fun ArticleCardFull(
     article: Article,
     onClick: () -> Unit,
     onStarToggle: () -> Unit,
+    onReadToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val bgColor = if (article.isRead) {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+    val contentAlpha = if (article.isRead) 0.5f else 1f
+
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .background(bgColor)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(start = 4.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (article.imageUrl != null) {
@@ -46,8 +60,10 @@ fun ArticleCardFull(
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(start = 12.dp)
                     .height(180.dp)
-                    .clip(RoundedCornerShape(12.dp)),
+                    .clip(RoundedCornerShape(12.dp))
+                    .alpha(contentAlpha),
                 contentScale = ContentScale.Crop
             )
         }
@@ -55,6 +71,18 @@ fun ArticleCardFull(
         Row(
             verticalAlignment = Alignment.Top
         ) {
+            // Read/unread book icon
+            IconButton(onClick = onReadToggle, modifier = Modifier.size(40.dp)) {
+                Icon(
+                    imageVector = if (article.isRead) Icons.AutoMirrored.Filled.MenuBook
+                        else Icons.Default.Book,
+                    contentDescription = if (article.isRead) "Mark as unread" else "Mark as read",
+                    tint = if (article.isRead) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        else MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -65,7 +93,7 @@ fun ArticleCardFull(
                     fontWeight = if (!article.isRead) FontWeight.Bold else FontWeight.Normal,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
-                    color = if (article.isRead) MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (article.isRead) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         else MaterialTheme.colorScheme.onSurface
                 )
 
@@ -75,7 +103,9 @@ fun ArticleCardFull(
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 3,
                         overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                            alpha = if (article.isRead) 0.4f else 0.8f
+                        )
                     )
                 }
 
@@ -84,13 +114,16 @@ fun ArticleCardFull(
                         Text(
                             text = article.feedTitle,
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            color = if (article.isRead) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                else MaterialTheme.colorScheme.primary
                         )
                     }
                     Text(
                         text = formatDate(article.publishedTimestamp),
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                            alpha = if (article.isRead) 0.5f else 1f
+                        )
                     )
                 }
             }
@@ -100,7 +133,9 @@ fun ArticleCardFull(
                     imageVector = if (article.isStarred) Icons.Default.Star else Icons.Default.StarBorder,
                     contentDescription = if (article.isStarred) "Unstar" else "Star",
                     tint = if (article.isStarred) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant
+                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                            alpha = if (article.isRead) 0.5f else 1f
+                        )
                 )
             }
         }

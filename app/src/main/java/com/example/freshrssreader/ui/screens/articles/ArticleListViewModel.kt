@@ -176,6 +176,29 @@ class ArticleListViewModel @Inject constructor(
         }
     }
 
+    fun toggleReadUnread(articleId: String) {
+        val article = _rawArticles.value.find { it.id == articleId } ?: return
+        if (article.isRead) {
+            // Mark as unread
+            markedReadIds.remove(articleId)
+            _rawArticles.value = _rawArticles.value.map {
+                if (it.id == articleId) it.copy(isRead = false) else it
+            }
+            viewModelScope.launch {
+                feedRepository.markAsUnread(articleId)
+            }
+        } else {
+            // Mark as read
+            markedReadIds.add(articleId)
+            _rawArticles.value = _rawArticles.value.map {
+                if (it.id == articleId) it.copy(isRead = true) else it
+            }
+            viewModelScope.launch {
+                feedRepository.markAsRead(articleId)
+            }
+        }
+    }
+
     fun toggleStar(articleId: String) {
         val article = _rawArticles.value.find { it.id == articleId } ?: return
         viewModelScope.launch {

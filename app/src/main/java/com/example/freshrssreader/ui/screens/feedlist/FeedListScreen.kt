@@ -54,8 +54,8 @@ fun FeedListScreen(
             TopAppBar(
                 title = { Text("FreshRSS Reader") },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 ),
                 actions = {
                     IconButton(onClick = onSettingsClick) {
