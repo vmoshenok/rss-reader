@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -109,40 +110,42 @@ fun ReaderScreen(
         val currentArticle = article
         val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
         if (currentArticle?.url != null) {
-            AndroidView(
-                factory = { ctx ->
-                    WebView(ctx).apply {
-                        layoutParams = ViewGroup.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        )
-                        webViewClient = WebViewClient()
-                        settings.javaScriptEnabled = true
-                        settings.domStorageEnabled = true
-                        settings.loadWithOverviewMode = true
-                        settings.useWideViewPort = true
-                        if (Build.VERSION.SDK_INT >= 33) {
-                            if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
-                                WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, isDarkTheme)
-                            }
-                        } else {
-                            @Suppress("DEPRECATION")
-                            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+            key(isDarkTheme) {
+                AndroidView(
+                    factory = { ctx ->
+                        WebView(ctx).apply {
+                            layoutParams = ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT
+                            )
+                            webViewClient = WebViewClient()
+                            settings.javaScriptEnabled = true
+                            settings.domStorageEnabled = true
+                            settings.loadWithOverviewMode = true
+                            settings.useWideViewPort = true
+                            if (Build.VERSION.SDK_INT >= 33) {
+                                if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                                    WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, isDarkTheme)
+                                }
+                            } else {
                                 @Suppress("DEPRECATION")
-                                WebSettingsCompat.setForceDark(
-                                    settings,
-                                    if (isDarkTheme) WebSettingsCompat.FORCE_DARK_ON
-                                    else WebSettingsCompat.FORCE_DARK_OFF
-                                )
+                                if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+                                    @Suppress("DEPRECATION")
+                                    WebSettingsCompat.setForceDark(
+                                        settings,
+                                        if (isDarkTheme) WebSettingsCompat.FORCE_DARK_ON
+                                        else WebSettingsCompat.FORCE_DARK_OFF
+                                    )
+                                }
                             }
+                            loadUrl(currentArticle.url)
                         }
-                        loadUrl(currentArticle.url)
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            )
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                )
+            }
         } else {
             Box(
                 modifier = Modifier

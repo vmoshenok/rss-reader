@@ -18,7 +18,7 @@ object Routes {
     const val LOGIN = "login"
     const val FEED_LIST = "feed_list"
     const val ARTICLE_LIST = "article_list/{streamId}/{title}"
-    const val READER = "reader/{articleId}"
+    const val READER = "reader?articleId={articleId}"
     const val SETTINGS = "settings"
 
     fun articleList(streamId: String, title: String): String {
@@ -29,7 +29,7 @@ object Routes {
 
     fun reader(articleId: String): String {
         val encodedId = URLEncoder.encode(articleId, "UTF-8")
-        return "reader/$encodedId"
+        return "reader?articleId=$encodedId"
     }
 }
 
