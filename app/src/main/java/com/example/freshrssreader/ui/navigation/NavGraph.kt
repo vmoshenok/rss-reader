@@ -18,7 +18,7 @@ object Routes {
     const val LOGIN = "login"
     const val FEED_LIST = "feed_list"
     const val ARTICLE_LIST = "article_list/{streamId}/{title}"
-    const val READER = "reader/{articleIndex}"
+    const val READER = "reader/{articleId}"
     const val SETTINGS = "settings"
 
     fun articleList(streamId: String, title: String): String {
@@ -27,8 +27,9 @@ object Routes {
         return "article_list/$encodedId/$encodedTitle"
     }
 
-    fun reader(articleIndex: Int): String {
-        return "reader/$articleIndex"
+    fun reader(articleId: String): String {
+        val encodedId = URLEncoder.encode(articleId, "UTF-8")
+        return "reader/$encodedId"
     }
 }
 
@@ -78,8 +79,8 @@ fun NavGraph(
             ArticleListScreen(
                 streamId = streamId,
                 title = title,
-                onArticleClick = { index ->
-                    navController.navigate(Routes.reader(index))
+                onArticleClick = { articleId ->
+                    navController.navigate(Routes.reader(articleId))
                 },
                 onBack = { navController.popBackStack() }
             )
@@ -88,12 +89,14 @@ fun NavGraph(
         composable(
             route = Routes.READER,
             arguments = listOf(
-                navArgument("articleIndex") { type = NavType.IntType }
+                navArgument("articleId") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val articleIndex = backStackEntry.arguments?.getInt("articleIndex") ?: 0
+            val articleId = URLDecoder.decode(
+                backStackEntry.arguments?.getString("articleId") ?: "", "UTF-8"
+            )
             ReaderScreen(
-                articleIndex = articleIndex,
+                articleId = articleId,
                 onBack = { navController.popBackStack() }
             )
         }

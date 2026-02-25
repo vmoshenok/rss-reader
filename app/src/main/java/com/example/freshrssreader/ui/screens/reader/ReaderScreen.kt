@@ -2,9 +2,12 @@ package com.example.freshrssreader.ui.screens.reader
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewFeature
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -21,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -36,7 +40,7 @@ import com.example.freshrssreader.data.repository.BrowserMode
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReaderScreen(
-    articleIndex: Int,
+    articleId: String,
     onBack: () -> Unit,
     viewModel: ReaderViewModel = hiltViewModel()
 ) {
@@ -44,8 +48,8 @@ fun ReaderScreen(
     val browserMode by viewModel.browserMode.collectAsState()
     val context = LocalContext.current
 
-    LaunchedEffect(articleIndex) {
-        viewModel.loadArticle(articleIndex)
+    LaunchedEffect(articleId) {
+        viewModel.loadArticle(articleId)
     }
 
     // If external browser mode, open URL and go back
@@ -103,6 +107,7 @@ fun ReaderScreen(
         }
     ) { paddingValues ->
         val currentArticle = article
+        val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
         if (currentArticle?.url != null) {
             AndroidView(
                 factory = { ctx ->
@@ -116,6 +121,21 @@ fun ReaderScreen(
                         settings.domStorageEnabled = true
                         settings.loadWithOverviewMode = true
                         settings.useWideViewPort = true
+                        if (Build.VERSION.SDK_INT >= 33) {
+                            if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                                WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, isDarkTheme)
+                            }
+                        } else {
+                            @Suppress("DEPRECATION")
+                            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+                                @Suppress("DEPRECATION")
+                                WebSettingsCompat.setForceDark(
+                                    settings,
+                                    if (isDarkTheme) WebSettingsCompat.FORCE_DARK_ON
+                                    else WebSettingsCompat.FORCE_DARK_OFF
+                                )
+                            }
+                        }
                         loadUrl(currentArticle.url)
                     }
                 },

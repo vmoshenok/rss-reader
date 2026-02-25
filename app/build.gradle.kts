@@ -85,6 +85,9 @@ dependencies {
     // Coil
     implementation(libs.coil.compose)
 
+    // WebView
+    implementation("androidx.webkit:webkit:1.12.1")
+
     // DataStore
     implementation(libs.datastore.preferences)
 }

@@ -29,11 +29,9 @@ class ReaderViewModel @Inject constructor(
     val browserMode: StateFlow<BrowserMode> = settingsRepository.browserMode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BrowserMode.INTERNAL)
 
-    fun loadArticle(index: Int) {
+    fun loadArticle(id: String) {
         val articles = sharedArticleHolder.articles
-        if (index in articles.indices) {
-            _article.value = articles[index]
-        }
+        _article.value = articles.find { it.id == id }
     }
 
     fun toggleStar() {

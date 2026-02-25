@@ -47,7 +47,7 @@ import kotlinx.coroutines.flow.debounce
 fun ArticleListScreen(
     streamId: String,
     title: String,
-    onArticleClick: (Int) -> Unit,
+    onArticleClick: (String) -> Unit,
     onBack: () -> Unit,
     viewModel: ArticleListViewModel = hiltViewModel()
 ) {
@@ -179,19 +179,19 @@ fun ArticleListScreen(
                                 when (viewMode) {
                                     ViewMode.COMPACT -> ArticleCardCompact(
                                         article = article,
-                                        onClick = { onArticleClick(index) },
+                                        onClick = { onArticleClick(article.id) },
                                         onStarToggle = { viewModel.toggleStar(article.id) },
                                         onReadToggle = { viewModel.toggleReadUnread(article.id) }
                                     )
                                     ViewMode.MEDIUM -> ArticleCardMedium(
                                         article = article,
-                                        onClick = { onArticleClick(index) },
+                                        onClick = { onArticleClick(article.id) },
                                         onStarToggle = { viewModel.toggleStar(article.id) },
                                         onReadToggle = { viewModel.toggleReadUnread(article.id) }
                                     )
                                     ViewMode.FULL -> ArticleCardFull(
                                         article = article,
-                                        onClick = { onArticleClick(index) },
+                                        onClick = { onArticleClick(article.id) },
                                         onStarToggle = { viewModel.toggleStar(article.id) },
                                         onReadToggle = { viewModel.toggleReadUnread(article.id) }
                                     )
