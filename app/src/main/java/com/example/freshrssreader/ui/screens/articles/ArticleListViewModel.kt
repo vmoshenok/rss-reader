@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -75,13 +77,39 @@ class ArticleListViewModel @Inject constructor(
     private var currentStreamId: String = ""
     private val markedReadIds = mutableSetOf<String>()
 
+    init {
+        // Re-fetch articles when sort order or filter changes
+        viewModelScope.launch {
+            combine(
+                settingsRepository.sortOrder.distinctUntilChanged(),
+                settingsRepository.articleFilter.distinctUntilChanged()
+            ) { sort, filter -> sort to filter }
+                .drop(1) // Skip the initial emission (loadArticles handles that)
+                .collect {
+                    if (currentStreamId.isNotEmpty()) {
+                        fetchArticles(isRefresh = true)
+                    }
+                }
+        }
+    }
+
     fun loadArticles(streamId: String) {
         currentStreamId = streamId
         markedReadIds.clear()
+        fetchArticles(isRefresh = false)
+    }
+
+    private fun fetchArticles(isRefresh: Boolean) {
         viewModelScope.launch {
-            _loadingState.value = LoadingState(isLoading = true)
+            if (isRefresh) {
+                markedReadIds.clear()
+                _loadingState.value = _loadingState.value.copy(isRefreshing = true)
+            } else {
+                _loadingState.value = LoadingState(isLoading = true)
+            }
             val excludeRead = articleFilter.value == ArticleFilter.UNREAD_ONLY
-            feedRepository.getArticles(streamId, excludeRead = excludeRead)
+            val oldestFirst = sortOrder.value == SortOrder.OLDEST_FIRST
+            feedRepository.getArticles(currentStreamId, excludeRead = excludeRead, oldestFirst = oldestFirst)
                 .onSuccess { (articles, continuation) ->
                     _rawArticles.value = articles
                     _loadingState.value = LoadingState(continuation = continuation)
@@ -96,23 +124,7 @@ class ArticleListViewModel @Inject constructor(
     }
 
     fun refresh() {
-        markedReadIds.clear()
-        viewModelScope.launch {
-            _loadingState.value = _loadingState.value.copy(isRefreshing = true)
-            val excludeRead = articleFilter.value == ArticleFilter.UNREAD_ONLY
-            feedRepository.getArticles(currentStreamId, excludeRead = excludeRead)
-                .onSuccess { (articles, continuation) ->
-                    _rawArticles.value = articles
-                    _loadingState.value = LoadingState(continuation = continuation)
-                    sharedArticleHolder.articles = articles
-                }
-                .onFailure { e ->
-                    _loadingState.value = _loadingState.value.copy(
-                        isRefreshing = false,
-                        error = e.localizedMessage
-                    )
-                }
-        }
+        fetchArticles(isRefresh = true)
     }
 
     fun loadMore() {
@@ -122,7 +134,8 @@ class ArticleListViewModel @Inject constructor(
         viewModelScope.launch {
             _loadingState.value = _loadingState.value.copy(isLoadingMore = true)
             val excludeRead = articleFilter.value == ArticleFilter.UNREAD_ONLY
-            feedRepository.getArticles(currentStreamId, continuation = continuation, excludeRead = excludeRead)
+            val oldestFirst = sortOrder.value == SortOrder.OLDEST_FIRST
+            feedRepository.getArticles(currentStreamId, continuation = continuation, excludeRead = excludeRead, oldestFirst = oldestFirst)
                 .onSuccess { (newArticles, newContinuation) ->
                     _rawArticles.value = _rawArticles.value + newArticles
                     _loadingState.value = _loadingState.value.copy(

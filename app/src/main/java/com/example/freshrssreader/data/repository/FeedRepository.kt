@@ -49,10 +49,12 @@ class FeedRepository @Inject constructor(
         streamId: String,
         count: Int = 50,
         continuation: String? = null,
-        excludeRead: Boolean = false
+        excludeRead: Boolean = false,
+        oldestFirst: Boolean = false
     ): Result<Pair<List<Article>, String?>> = runCatching {
         val excludeTarget = if (excludeRead) STATE_READ else null
-        val response = api.getStreamContents(streamId, count, continuation, excludeTarget)
+        val ranking = if (oldestFirst) "o" else null
+        val response = api.getStreamContents(streamId, count, continuation, excludeTarget, ranking)
         if (!response.isSuccessful) {
             throw Exception("Failed to fetch articles: ${response.code()}")
         }

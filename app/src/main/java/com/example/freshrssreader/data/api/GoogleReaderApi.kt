@@ -39,7 +39,8 @@ interface GoogleReaderApi {
         @Path("streamId", encoded = true) streamId: String,
         @Query("n") count: Int = 50,
         @Query("c") continuation: String? = null,
-        @Query("xt") excludeTarget: String? = null
+        @Query("xt") excludeTarget: String? = null,
+        @Query("r") ranking: String? = null
     ): Response<StreamContentsResponse>
 
     @FormUrlEncoded
